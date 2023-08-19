@@ -9,17 +9,35 @@
 #include <stdio.h>
 
 #include "DHT22.h"
+#include "sdkconfig.h"
+#include "ssd1306.h"
 
 static const char *TAG = "DHT22";
 void DHT_task(void *pvParameter) {
-  setDHTgpio(GPIO_NUM_23);
-  ESP_LOGI(TAG, "开始 DHT22 📝\n");
-
+  setDHTgpio(GPIO_NUM_25);
+  SSD1306_t dev;
+  i2c_master_init(&dev, CONFIG_SDA_GPIO, CONFIG_SCL_GPIO, CONFIG_RESET_GPIO);
+  ssd1306_init(&dev, 128, 64);
+  ssd1306_clear_screen(&dev, false);
+  ssd1306_contrast(&dev, 0xff);
   while (1) {
     int ret = readDHT();
     errorHandler(ret);
-    ESP_LOGI(TAG, "💧 湿度: %.1f %%RH \x0a", getHumidity());
-    ESP_LOGI(TAG, "🌞 温度: %.1f ˚C\n", getTemperature());
+    float h = getHumidity();
+    char humidity[14];
+    ESP_LOGI(
+        TAG, "💧 湿度: %.1f %%\x0a",
+        h); // 🤷‍♂️不知道为什么，需要打印不然读取的湿度会错误❌
+    sprintf(humidity, "%.2f %%", h);
+    float t = getTemperature();
+    char temperature[14];
+    ESP_LOGI(
+        TAG, "🌞 温度: %.1f degC\n",
+        t); // 🤷‍♂️不知道为什么，需要打印不然读取的温度会错误❌
+    sprintf(temperature, "%.2f degC", t);
+
+    ssd1306_display_text(&dev, 0, humidity, 8, false);
+    ssd1306_display_text(&dev, 2, temperature, 12, false);
 
     // -- wait at least 2 sec before reading again ------------
     // The interval of whole process must be beyond 2 seconds !!
@@ -37,5 +55,6 @@ void app_main(void) {
   ESP_ERROR_CHECK(ret);
 
   esp_log_level_set("*", ESP_LOG_INFO);
-  xTaskCreate(&DHT_task, "DHT_task", 2048, NULL, 5, NULL);
+  vTaskDelay(6000 / portTICK_PERIOD_MS);
+  xTaskCreate(&DHT_task, "DHT_task", 2048 * 2, NULL, 5, NULL);
 }
