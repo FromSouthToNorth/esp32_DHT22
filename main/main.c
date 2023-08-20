@@ -25,15 +25,15 @@ void DHT_task(void *pvParameter) {
     errorHandler(ret);
     float h = getHumidity();
     char humidity[14];
-    ESP_LOGI(
-        TAG, "💧 湿度: %.1f %%\x0a",
-        h); // 🤷‍♂️不知道为什么，需要打印不然读取的湿度会错误❌
+    ESP_LOGI(TAG, "💧 湿度: %.1f %%\x0a",
+             h); // 🤷‍♂️不知道为什么，需要打印不然读取的湿度会错误  DHT:
+                 // CheckSum error❌
     sprintf(humidity, "%.2f %%", h);
     float t = getTemperature();
     char temperature[14];
-    ESP_LOGI(
-        TAG, "🌞 温度: %.1f degC\n",
-        t); // 🤷‍♂️不知道为什么，需要打印不然读取的温度会错误❌
+    ESP_LOGI(TAG, "🌞 温度: %.1f degC\n",
+             t); // 🤷‍♂️不知道为什么，需要打印不然读取的温度会错误  DHT:
+                 // CheckSum error❌
     sprintf(temperature, "%.2f degC", t);
 
     ssd1306_display_text(&dev, 0, humidity, 8, false);
